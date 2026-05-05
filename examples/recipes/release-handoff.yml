@@ -1,0 +1,37 @@
+id: release-handoff
+name: Release Handoff
+description: Record release risk, rollback, ownership, and validation notes.
+scope:
+  kind: cli
+  project: operation-memory
+  command: opmem
+intent:
+  description: Keep release handoff context available to the next operator or agent.
+risk: draft
+inputs:
+  - name: release_version
+    description: Version, deployment id, or change ticket for the release.
+    required: true
+    example: v0.1.0
+steps:
+  - description: Capture rollback conditions and the owner for the release.
+    action: opmem add examples/recipes/release-handoff.yml
+    expected_result: The release-handoff recipe is stored locally.
+  - description: Check for previous rollback notes before deployment.
+    action: opmem search "rollback release"
+    expected_result: Relevant handoff or rollback recipes are displayed.
+success_conditions:
+  - Rollback trigger, validation signal, and owner are explicit.
+  - The handoff can be found with opmem search.
+failure_patterns:
+  - pattern: rollback trigger is vague
+    meaning: Operators may hesitate during an active release problem.
+    recovery: Replace subjective wording with a measurable threshold.
+policy:
+  requires_confirmation: false
+  allowed_modes:
+    - local
+metadata:
+  created_at: "2026-05-05T00:00:00.000Z"
+  updated_at: "2026-05-05T00:00:00.000Z"
+  confidence: medium

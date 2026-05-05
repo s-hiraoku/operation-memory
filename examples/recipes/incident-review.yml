@@ -1,0 +1,37 @@
+id: incident-review
+name: Incident Review Capture
+description: Capture decisions, impact, and follow-up checks after an incident review.
+scope:
+  kind: cli
+  project: operation-memory
+  command: opmem
+intent:
+  description: Preserve incident context that should remain searchable after chat and tickets move on.
+risk: draft
+inputs:
+  - name: incident_id
+    description: Incident identifier from the team's tracker.
+    required: true
+    example: INC-2026-0505
+steps:
+  - description: Summarize customer impact and the confirmed timeline.
+    action: opmem add examples/recipes/incident-review.yml
+    expected_result: A validated incident-review recipe is available in the local store.
+  - description: Search for prior incidents with similar impact before closing follow-ups.
+    action: opmem search "customer impact incident"
+    expected_result: Related incident memories are listed with match scores.
+success_conditions:
+  - The review includes impact, timeline, owner, and follow-up checks.
+  - The recipe validates with opmem validate.
+failure_patterns:
+  - pattern: missing incident owner
+    meaning: Follow-up accountability is unclear.
+    recovery: Add the responsible team or person before publishing the review.
+policy:
+  requires_confirmation: false
+  allowed_modes:
+    - local
+metadata:
+  created_at: "2026-05-05T00:00:00.000Z"
+  updated_at: "2026-05-05T00:00:00.000Z"
+  confidence: medium

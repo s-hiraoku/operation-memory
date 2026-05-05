@@ -1,0 +1,37 @@
+id: eks-rollout-check
+name: Check EKS rollout status
+description: Inspect Kubernetes rollout status for a deployment on Amazon EKS.
+scope:
+  kind: cloud
+  project: production-platform
+  command: kubectl rollout status
+  tool: kubectl
+intent:
+  description: Read deployment status and report whether the rollout completed successfully.
+risk: read
+inputs:
+  - name: namespace
+    description: Kubernetes namespace.
+    required: true
+  - name: deployment
+    description: Deployment name.
+    required: true
+steps:
+  - description: Confirm the current kubectl context points to the expected EKS cluster.
+  - description: Run kubectl rollout status deployment/<deployment> -n <namespace>.
+  - description: Read the rollout status output and summarize it.
+success_conditions:
+  - The rollout status command reports success.
+  - The namespace and deployment name match the requested target.
+failure_patterns:
+  - pattern: context deadline exceeded
+    meaning: Rollout may still be progressing or the cluster may be unreachable.
+    recovery: Check deployment events and ask before making changes.
+policy:
+  allowed_modes:
+    - assisted
+    - autonomous_readonly
+metadata:
+  created_at: "2026-05-05T00:00:00Z"
+  updated_at: "2026-05-05T00:00:00Z"
+  confidence: high

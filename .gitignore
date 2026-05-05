@@ -1,0 +1,4 @@
+node_modules/
+dist/
+.operation-memory/
+.DS_Store
