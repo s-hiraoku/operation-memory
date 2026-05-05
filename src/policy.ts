@@ -27,6 +27,9 @@ export function requiresConfirmationForRisk(risk: OperationRisk): boolean {
 }
 
 export function requiresConfirmation(recipe: OperationRecipe): boolean {
+  if (requiresConfirmationForRisk(recipe.risk)) {
+    return true;
+  }
   if (typeof recipe.policy.requires_confirmation === "boolean") {
     return recipe.policy.requires_confirmation;
   }

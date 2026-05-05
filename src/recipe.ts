@@ -24,6 +24,14 @@ export const riskSchema = z.enum([
 
 export const confidenceSchema = z.enum(["low", "medium", "high"]);
 
+export const executionModeSchema = z.enum([
+  "manual",
+  "assisted",
+  "prefill",
+  "confirm",
+  "auto_readonly",
+]);
+
 export const scopeSchema = z
   .object({
     kind: scopeKindSchema,
@@ -63,7 +71,7 @@ export const failurePatternSchema = z
 export const policySchema = z
   .object({
     requires_confirmation: z.boolean().optional(),
-    allowed_modes: z.array(z.string().min(1)).default([]),
+    allowed_modes: z.array(executionModeSchema).default([]),
   })
   .strict();
 
@@ -96,10 +104,21 @@ export const operationRecipeSchema = z
     policy: policySchema.default({ allowed_modes: [] }),
     metadata: metadataSchema,
   })
-  .strict();
+  .strict()
+  .superRefine((recipe, context) => {
+    const mustConfirm = recipe.risk === "write" || recipe.risk === "destructive" || recipe.risk === "real_world";
+    if (mustConfirm && recipe.policy.requires_confirmation === false) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["policy", "requires_confirmation"],
+        message: `${recipe.risk} recipes cannot disable confirmation`,
+      });
+    }
+  });
 
 export type OperationRecipe = z.infer<typeof operationRecipeSchema>;
 export type OperationRisk = z.infer<typeof riskSchema>;
+export type ExecutionMode = z.infer<typeof executionModeSchema>;
 
 export function validateRecipe(value: unknown): OperationRecipe {
   return operationRecipeSchema.parse(value);

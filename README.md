@@ -134,6 +134,10 @@ Use the `risk` and `policy.requires_confirmation` fields to mark procedures that
 - `prefill`: confirmation is required before submission.
 - `write`, `destructive`, `real_world`: confirmation is required.
 
+`policy.allowed_modes` is a typed list. Allowed values are `manual`, `assisted`, `prefill`, `confirm`, and `auto_readonly`.
+
+See `SECURITY.md` for review guidance and `SPEC.md` for the recipe lifecycle, risk model, execution modes, and non-goals.
+
 ## MVP Notes
 
 The CLI delegates storage, recipe validation, policy, and search behavior to the TypeScript modules under `src/`. The command surface is intentionally small so the backing store and search implementation can evolve without changing common workflows.

@@ -76,6 +76,27 @@ describe("operationRecipeSchema", () => {
 
     expect(result.success).toBe(false);
   });
+
+  it("rejects unknown execution modes", () => {
+    const result = operationRecipeSchema.safeParse({
+      ...validRecipe,
+      policy: { allowed_modes: ["local"] },
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects disabled confirmation for write and higher-impact risks", () => {
+    for (const risk of ["write", "destructive", "real_world"] as const) {
+      const result = operationRecipeSchema.safeParse({
+        ...validRecipe,
+        risk,
+        policy: { requires_confirmation: false, allowed_modes: ["assisted"] },
+      });
+
+      expect(result.success).toBe(false);
+    }
+  });
 });
 
 describe("confirmation policy", () => {
@@ -105,6 +126,15 @@ describe("confirmation policy", () => {
           policy: { requires_confirmation: true, allowed_modes: [] },
         }),
       ),
+    ).toBe(true);
+  });
+
+  it("does not allow high-impact risks to opt out in policy evaluation", () => {
+    expect(
+      requiresConfirmation({
+        ...validateRecipe(validRecipe),
+        policy: { requires_confirmation: false, allowed_modes: ["assisted"] },
+      }),
     ).toBe(true);
   });
 });
