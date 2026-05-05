@@ -147,3 +147,20 @@ Future work may add `opmem audit` to flag secret-looking values, raw URLs, custo
 ## MVP Notes
 
 The CLI delegates storage, recipe validation, policy, and search behavior to the TypeScript modules under `src/`. The command surface is intentionally small so the backing store and search implementation can evolve without changing common workflows.
+
+## Development Harness
+
+This repository includes a small Codex harness adapted from [`s-hiraoku/codex-harnesses`](https://github.com/s-hiraoku/codex-harnesses):
+
+- `AGENTS.md` keeps durable project guidance close to the code.
+- `scripts/verify.sh` runs typecheck, tests, and build.
+- `scripts/checkpoint.sh` appends resumable task state to `ledger/current.md`.
+- `ledger/` stores task state, durable decisions, risks, and verification notes.
+- `policies/default.yaml` records the expected safety and verification posture.
+
+Use:
+
+```sh
+npm run verify
+npm run checkpoint
+```

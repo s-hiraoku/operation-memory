@@ -111,15 +111,34 @@ describe("operationRecipeSchema", () => {
 });
 
 describe("full example recipe files", () => {
-  it("validates every full recipe file under examples and docs examples", async () => {
+  it("validates every production and valid documentation recipe", async () => {
     const files = await collectYamlFiles([
       path.join(process.cwd(), "examples", "recipes"),
-      path.join(process.cwd(), "docs", "examples"),
+      path.join(process.cwd(), "docs", "examples", "valid"),
     ]);
 
     expect(files.length).toBeGreaterThan(0);
     for (const file of files) {
       await expect(readRecipeFile(file), file).resolves.toMatchObject({ id: expect.any(String) });
+    }
+  });
+
+  it("keeps warn documentation recipes schema-valid for future audit warnings", async () => {
+    const files = await collectYamlFiles([path.join(process.cwd(), "docs", "examples", "warn")]);
+
+    expect(files.length).toBeGreaterThan(0);
+    for (const file of files) {
+      await expect(readRecipeFile(file), file).resolves.toMatchObject({ id: expect.any(String) });
+    }
+  });
+
+  it("keeps invalid documentation recipes intentionally invalid when present", async () => {
+    const files = await collectYamlFiles([path.join(process.cwd(), "docs", "examples", "invalid")], {
+      ignoreMissing: true,
+    });
+
+    for (const file of files) {
+      await expect(readRecipeFile(file), file).rejects.toThrow();
     }
   });
 });
@@ -164,14 +183,25 @@ describe("confirmation policy", () => {
   });
 });
 
-async function collectYamlFiles(directories: string[]): Promise<string[]> {
+async function collectYamlFiles(
+  directories: string[],
+  options: { ignoreMissing?: boolean } = {},
+): Promise<string[]> {
   const files: string[] = [];
   for (const directory of directories) {
-    const entries = await readdir(directory, { withFileTypes: true });
+    let entries;
+    try {
+      entries = await readdir(directory, { withFileTypes: true });
+    } catch (error) {
+      if (options.ignoreMissing && error instanceof Error && "code" in error && error.code === "ENOENT") {
+        continue;
+      }
+      throw error;
+    }
     for (const entry of entries) {
       const fullPath = path.join(directory, entry.name);
       if (entry.isDirectory()) {
-        files.push(...(await collectYamlFiles([fullPath])));
+        files.push(...(await collectYamlFiles([fullPath], options)));
       } else if (entry.isFile() && /\.ya?ml$/i.test(entry.name)) {
         files.push(fullPath);
       }

@@ -9,6 +9,8 @@ Operation Recipes are guidance, not automation scripts. They should help an agen
 
 This MVP never executes recipe steps, `suggested_command`, shell commands, browser actions, MCP calls, or any other recipe content.
 
+Schema-valid does not always mean good quality. A recipe can pass `opmem validate` while still containing overly concrete environment values, weak abstraction, or risky guidance. A future `opmem audit` command will distinguish schema-valid/good examples from schema-valid/risky examples.
+
 ## Good Recipes
 
 A good Operation Recipe has:
@@ -182,9 +184,12 @@ failure_patterns:
     recovery: Stop and ask an editor whether to continue.
 ```
 
-## Review Checklist
+## Full Example Files
 
-Full valid before/after examples are available in `docs/examples/quality-before-placeholder.yml` and `docs/examples/quality-after-placeholder.yml`.
+- `docs/examples/valid/quality-after-placeholder.yml`: full valid recipe and intended quality target.
+- `docs/examples/warn/quality-before-placeholder.yml`: full schema-valid recipe that is intentionally low quality and reserved for future audit warnings.
+
+## Review Checklist
 
 Before adding a recipe:
 
