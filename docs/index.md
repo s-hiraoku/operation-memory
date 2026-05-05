@@ -24,6 +24,8 @@ The MVP is intentionally non-executing. It never runs recipe steps, `suggested_c
 
 ## Quickstart
 
+Operation Memory requires Node.js 20 or newer.
+
 Install dependencies and build the CLI:
 
 ```sh
