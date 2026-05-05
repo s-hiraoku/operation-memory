@@ -94,6 +94,8 @@ All commands support `--json`.
 
 Recipes are YAML files with an id, name, description, scope, intent, risk, steps, success conditions, failure patterns, policy, and metadata. See `examples/recipes/*.yml` for complete examples.
 
+Recipe steps are descriptive guidance only. This MVP never executes `suggested_command`, shell commands, browser actions, MCP calls, or any other step content.
+
 ```yaml
 id: cms-save-draft
 name: Save CMS article as draft
@@ -137,6 +139,8 @@ Use the `risk` and `policy.requires_confirmation` fields to mark procedures that
 `policy.allowed_modes` is a typed list. Allowed values are `manual`, `assisted`, `prefill`, `confirm`, and `auto_readonly`.
 
 See `SECURITY.md` for review guidance and `SPEC.md` for the recipe lifecycle, risk model, execution modes, and non-goals.
+
+Future work may add `opmem audit` to flag secret-looking values, raw URLs, customer identifiers, and unsafe policy combinations. It is not implemented in this MVP.
 
 ## MVP Notes
 

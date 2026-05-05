@@ -15,10 +15,10 @@ inputs:
     example: INC-2026-0505
 steps:
   - description: Summarize customer impact and the confirmed timeline.
-    action: opmem add examples/recipes/incident-review.yml
+    suggested_command: opmem add examples/recipes/incident-review.yml
     expected_result: A validated incident-review recipe is available in the local store.
   - description: Search for prior incidents with similar impact before closing follow-ups.
-    action: opmem search "customer impact incident"
+    suggested_command: opmem search "customer impact incident"
     expected_result: Related incident memories are listed with match scores.
 success_conditions:
   - The review includes impact, timeline, owner, and follow-up checks.

@@ -4,6 +4,8 @@ Operation Memory is local-first procedural memory for AI agents and human operat
 
 The MVP is a recipe management tool. It validates YAML recipes, stores them on the filesystem, searches them deterministically, and exposes a small CLI. It does not execute recipe steps.
 
+Recipe steps are descriptive guidance only. Fields such as `suggested_command` or `guidance` are examples for an operator or agent to read; the MVP never executes shell commands, browser actions, MCP calls, or any other step content.
+
 ## Concept
 
 A recipe captures how to perform an operation:
@@ -55,13 +57,19 @@ Validation rejects `write`, `destructive`, and `real_world` recipes that set `po
 
 Allowed execution modes:
 
-- `manual`: a human performs the operation.
-- `assisted`: an agent can guide or prepare steps while a human remains in control.
-- `prefill`: an agent may fill forms or drafts but must stop before submission.
-- `confirm`: an agent may proceed only after explicit human confirmation.
-- `auto_readonly`: an agent may perform read-only retrieval or inspection.
+| Mode | Who acts | Allowed behavior | Boundary |
+| --- | --- | --- | --- |
+| `manual` | Human operator | The recipe is read as a checklist or reference. | The agent must not prepare changes, fill fields, or execute steps. |
+| `assisted` | Human operator with agent guidance | The agent may explain steps, summarize context, draft checklists, and point to suggested commands. | The human remains the actor; the agent must not submit, write, delete, or execute commands. |
+| `prefill` | Agent prepares, human submits | The agent may prepare text, forms, patches, or command suggestions for review. | The agent must stop before any submission, write, external send, or state change. |
+| `confirm` | Agent proceeds only after explicit human approval | The agent may prepare a high-risk operation and ask for confirmation at the marked point. | Confirmation must be explicit and operation-specific; no blanket approval is implied. |
+| `auto_readonly` | Agent performs read-only retrieval or inspection | The agent may collect non-sensitive read-only information where a future adapter allows it. | No writes, submissions, mutations, secrets, raw DOM dumps, raw screenshots, or log collection. |
 
 These are policy labels. The MVP does not execute any mode automatically.
+
+## Future Audit Command
+
+A future `opmem audit` command should review recipes for secret-looking values, raw URLs or environment-specific identifiers, customer identifiers, prohibited raw data, and unsafe policy combinations. This is intentionally not implemented in the MVP.
 
 ## Non-Goals
 

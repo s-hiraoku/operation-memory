@@ -14,6 +14,8 @@ Do not store:
 
 Store stable procedure, risk, expected state, failure meaning, and recovery guidance instead.
 
+Recipe steps are descriptive guidance only. This MVP never executes `action`, `suggested_command`, shell commands, browser actions, MCP calls, or any other step content.
+
 ## Recipe Review Checklist
 
 Before adding or committing a recipe, check that:
@@ -47,3 +49,5 @@ For these recipes:
 - Do not store commands that embed secrets or irreversible parameters.
 
 This MVP is non-executing. It does not run shell commands, automate browsers, start an MCP server, generate embeddings, or collect logs automatically.
+
+A future `opmem audit` command may check for secret-looking values, raw URLs, customer identifiers, and unsafe policy combinations. That audit command is not part of this MVP.

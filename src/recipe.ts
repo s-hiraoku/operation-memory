@@ -54,7 +54,8 @@ export const inputSchema = z
 export const stepSchema = z
   .object({
     description: z.string().min(1),
-    action: z.string().min(1).optional(),
+    suggested_command: z.string().min(1).optional(),
+    guidance: z.string().min(1).optional(),
     expected_result: z.string().min(1).optional(),
     requires_confirmation: z.boolean().optional(),
   })

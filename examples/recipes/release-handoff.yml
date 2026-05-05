@@ -15,10 +15,10 @@ inputs:
     example: v0.1.0
 steps:
   - description: Capture rollback conditions and the owner for the release.
-    action: opmem add examples/recipes/release-handoff.yml
+    suggested_command: opmem add examples/recipes/release-handoff.yml
     expected_result: The release-handoff recipe is stored locally.
   - description: Check for previous rollback notes before deployment.
-    action: opmem search "rollback release"
+    suggested_command: opmem search "rollback release"
     expected_result: Relevant handoff or rollback recipes are displayed.
 success_conditions:
   - Rollback trigger, validation signal, and owner are explicit.

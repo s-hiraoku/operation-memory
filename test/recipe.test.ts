@@ -23,7 +23,7 @@ const validRecipe = {
   steps: [
     {
       description: "Restart the service.",
-      action: "systemctl restart api",
+      suggested_command: "systemctl restart api",
       expected_result: "The service is active.",
     },
   ],
@@ -81,6 +81,15 @@ describe("operationRecipeSchema", () => {
     const result = operationRecipeSchema.safeParse({
       ...validRecipe,
       policy: { allowed_modes: ["local"] },
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects executable-looking legacy step action fields", () => {
+    const result = operationRecipeSchema.safeParse({
+      ...validRecipe,
+      steps: [{ description: "Restart the service.", action: "systemctl restart api" }],
     });
 
     expect(result.success).toBe(false);
