@@ -21,6 +21,8 @@ A recipe captures how to perform an operation:
 
 This lets an agent retrieve operational procedure before acting, without storing credentials or raw interaction logs.
 
+See `docs/recipe-quality.md` for guidance on writing clear, safe, non-executing recipes.
+
 ## Differences
 
 - Memory stores user or project context. Operation Memory stores reusable procedures for operations.
