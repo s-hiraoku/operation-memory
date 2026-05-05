@@ -1,3 +1,8 @@
+---
+layout: default
+title: Recipe Quality Guide
+---
+
 # Recipe Quality Guide
 
 Operation Recipes are guidance, not automation scripts. They should help an agent or human operator understand a procedure, risk, confirmation point, success signal, and recovery path without storing secrets or raw operational data.
