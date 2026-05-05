@@ -69,7 +69,7 @@ These are policy labels. The MVP does not execute any mode automatically.
 
 ## Future Audit Command
 
-A future `opmem audit` command should review recipes for secret-looking values, raw URLs or environment-specific identifiers, customer identifiers, prohibited raw data, and unsafe policy combinations. This is intentionally not implemented in the MVP.
+A future `opmem audit` command should review recipes for secret-looking values, raw URLs or environment-specific identifiers, customer identifiers, prohibited raw data, and unsafe policy combinations. This is intentionally not implemented in the MVP. See `docs/audit.md` for the design.
 
 ## Non-Goals
 

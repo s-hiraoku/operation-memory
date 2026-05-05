@@ -14,7 +14,9 @@ Do not store:
 
 Store stable procedure, risk, expected state, failure meaning, and recovery guidance instead.
 
-Recipe steps are descriptive guidance only. This MVP never executes `action`, `suggested_command`, shell commands, browser actions, MCP calls, or any other step content.
+Recipe steps are descriptive guidance only. This MVP never executes `suggested_command`, shell commands, browser actions, MCP calls, or any other step content.
+
+Legacy `steps[].action` fields are rejected by the schema because they look executable. Use `steps[].guidance` for prose and `steps[].suggested_command` for non-executed command examples.
 
 ## Recipe Review Checklist
 
@@ -50,4 +52,4 @@ For these recipes:
 
 This MVP is non-executing. It does not run shell commands, automate browsers, start an MCP server, generate embeddings, or collect logs automatically.
 
-A future `opmem audit` command may check for secret-looking values, raw URLs, customer identifiers, and unsafe policy combinations. That audit command is not part of this MVP.
+A future `opmem audit` command may check for secret-looking values, raw URLs, customer identifiers, and unsafe policy combinations. That audit command is not part of this MVP. See `docs/audit.md` for the design.

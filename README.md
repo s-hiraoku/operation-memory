@@ -140,7 +140,7 @@ Use the `risk` and `policy.requires_confirmation` fields to mark procedures that
 
 See `SECURITY.md` for review guidance and `SPEC.md` for the recipe lifecycle, risk model, execution modes, and non-goals.
 
-Future work may add `opmem audit` to flag secret-looking values, raw URLs, customer identifiers, and unsafe policy combinations. It is not implemented in this MVP.
+Future work may add `opmem audit` to flag secret-looking values, raw URLs, customer identifiers, and unsafe policy combinations. It is not implemented in this MVP. See `docs/audit.md` for the design.
 
 ## MVP Notes
 
