@@ -12,6 +12,8 @@ Do not store:
 - Unredacted incident payloads, logs, stack traces, or database records that contain sensitive values
 - Credentials embedded in CLI commands, URLs, headers, environment variables, or config snippets
 
+URLs are not always forbidden. Public documentation URLs, stable product docs, and placeholder URLs can be useful. Avoid signed URLs, token-bearing URLs, tenant/account-specific URLs, and internal hostnames unless they are abstracted into placeholders.
+
 Store stable procedure, risk, expected state, failure meaning, and recovery guidance instead.
 
 Recipe steps are descriptive guidance only. This MVP never executes `suggested_command`, shell commands, browser actions, MCP calls, or any other step content.

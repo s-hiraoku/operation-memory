@@ -1,10 +1,12 @@
+import { readdir } from "node:fs/promises";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   confirmationRequirementForRisk,
   requiresConfirmation,
   requiresConfirmationForRisk,
 } from "../src/policy.js";
-import { operationRecipeSchema, validateRecipe } from "../src/recipe.js";
+import { operationRecipeSchema, readRecipeFile, validateRecipe } from "../src/recipe.js";
 
 const validRecipe = {
   id: "restart-api",
@@ -108,6 +110,20 @@ describe("operationRecipeSchema", () => {
   });
 });
 
+describe("full example recipe files", () => {
+  it("validates every full recipe file under examples and docs examples", async () => {
+    const files = await collectYamlFiles([
+      path.join(process.cwd(), "examples", "recipes"),
+      path.join(process.cwd(), "docs", "examples"),
+    ]);
+
+    expect(files.length).toBeGreaterThan(0);
+    for (const file of files) {
+      await expect(readRecipeFile(file), file).resolves.toMatchObject({ id: expect.any(String) });
+    }
+  });
+});
+
 describe("confirmation policy", () => {
   it("maps risk levels to confirmation requirements", () => {
     expect(confirmationRequirementForRisk("read")).toBe("none");
@@ -147,3 +163,19 @@ describe("confirmation policy", () => {
     ).toBe(true);
   });
 });
+
+async function collectYamlFiles(directories: string[]): Promise<string[]> {
+  const files: string[] = [];
+  for (const directory of directories) {
+    const entries = await readdir(directory, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        files.push(...(await collectYamlFiles([fullPath])));
+      } else if (entry.isFile() && /\.ya?ml$/i.test(entry.name)) {
+        files.push(fullPath);
+      }
+    }
+  }
+  return files.sort();
+}

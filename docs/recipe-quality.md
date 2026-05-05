@@ -20,6 +20,7 @@ A good Operation Recipe has:
 Good recipes favor placeholders over concrete sensitive values:
 
 ```yaml
+# valid recipe excerpt
 scope:
   kind: cloud
   project: production-platform
@@ -50,6 +51,7 @@ A bad Operation Recipe includes:
 - Raw DOM dumps, screenshots, HAR files, browser storage, copied SaaS exports, or pasted logs.
 - Token-like values, passwords, private keys, session IDs, bearer tokens, or signed URLs.
 - Environment-specific values without abstraction, such as internal hostnames, account IDs, tenant URLs, or one-off production resource names.
+- Signed URLs, token-bearing URLs, tenant/account-specific URLs, and internal hostnames unless they are abstracted into placeholders.
 - Executable-looking instructions that imply the MVP will run the step.
 - Missing success conditions.
 - Missing failure meanings or recovery guidance.
@@ -64,6 +66,7 @@ Bad recipes often look like transcripts or command history. Operation Memory sho
 Before:
 
 ```yaml
+# partial snippet
 scope:
   kind: cloud
   domain: prod-internal.example.invalid
@@ -75,6 +78,7 @@ steps:
 After:
 
 ```yaml
+# valid recipe excerpt
 scope:
   kind: cloud
   project: production-platform
@@ -93,6 +97,7 @@ inputs:
 Before:
 
 ```yaml
+# partial snippet
 steps:
   - description: Run rm -rf on the failed release directory.
 ```
@@ -100,6 +105,7 @@ steps:
 After:
 
 ```yaml
+# valid recipe excerpt
 steps:
   - description: Identify stale release artifacts after rollback confirmation.
     guidance: Do not remove artifacts until the rollback owner confirms the target path.
@@ -115,6 +121,7 @@ policy:
 Before:
 
 ```yaml
+# partial snippet
 risk: destructive
 steps:
   - description: Delete the stale environment.
@@ -124,6 +131,7 @@ success_conditions: []
 After:
 
 ```yaml
+# valid recipe excerpt
 risk: destructive
 steps:
   - description: Confirm the environment name, owner, and deletion ticket.
@@ -148,6 +156,7 @@ policy:
 Before:
 
 ```yaml
+# partial snippet
 steps:
   - description: Save the CMS draft.
 ```
@@ -155,6 +164,7 @@ steps:
 After:
 
 ```yaml
+# valid recipe excerpt
 steps:
   - description: Save the CMS article as a draft.
     guidance: Do not publish.
@@ -168,6 +178,8 @@ failure_patterns:
 ```
 
 ## Review Checklist
+
+Full valid before/after examples are available in `docs/examples/quality-before-placeholder.yml` and `docs/examples/quality-after-placeholder.yml`.
 
 Before adding a recipe:
 

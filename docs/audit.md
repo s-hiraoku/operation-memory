@@ -27,7 +27,7 @@ The first implementation should check for these categories.
 | Category | Examples | Suggested Severity |
 | --- | --- | --- |
 | Secret-looking values | API keys, bearer tokens, private keys, session IDs, password-like fields | `error` |
-| Raw URLs with environment-specific identifiers | Internal hostnames, tenant URLs, account-specific cloud console links, signed URLs | `warning` or `error` |
+| Raw URLs with environment-specific identifiers | Internal hostnames, tenant URLs, account-specific cloud console links, signed URLs, token-bearing URLs | `warning` or `error` |
 | Customer identifiers | Customer names, account IDs, incident payload identifiers, ticket bodies copied from support systems | `warning` |
 | Emails or personal data | Email addresses, phone numbers, names paired with operational context | `warning` or `error` |
 | Raw browser artifacts | DOM snapshots, screenshots, HAR files, browser storage dumps, copied SaaS exports | `error` |

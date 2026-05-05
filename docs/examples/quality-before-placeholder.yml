@@ -1,0 +1,30 @@
+id: quality-before-placeholder
+name: Rollout check with overly concrete values
+description: Example of a valid but low-quality recipe that uses concrete environment values.
+scope:
+  kind: cloud
+  domain: prod-internal.example.invalid
+  project: acme-prod-platform
+  command: kubectl rollout status
+  tool: kubectl
+intent:
+  description: Check rollout status for one concrete deployment.
+risk: read
+inputs: []
+steps:
+  - description: Check deployment customer-acme-api in namespace acme-prod.
+    suggested_command: kubectl rollout status deployment/customer-acme-api -n acme-prod
+success_conditions:
+  - The rollout command reports successful completion.
+failure_patterns:
+  - pattern: context deadline exceeded
+    meaning: The rollout may still be progressing or the cluster may be unreachable.
+    recovery: Check deployment events before making changes.
+policy:
+  allowed_modes:
+    - assisted
+    - auto_readonly
+metadata:
+  created_at: "2026-05-05T00:00:00Z"
+  updated_at: "2026-05-05T00:00:00Z"
+  confidence: low

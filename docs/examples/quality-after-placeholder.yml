@@ -1,0 +1,38 @@
+id: quality-after-placeholder
+name: Rollout check with placeholders
+description: Example of a higher-quality recipe that abstracts concrete environment values.
+scope:
+  kind: cloud
+  project: production-platform
+  command: kubectl rollout status
+  tool: kubectl
+intent:
+  description: Check rollout status for a requested deployment without storing concrete customer values.
+risk: read
+inputs:
+  - name: namespace
+    description: Kubernetes namespace to inspect.
+    required: true
+  - name: deployment
+    description: Deployment name to inspect.
+    required: true
+steps:
+  - description: Confirm the current cluster context matches the intended environment.
+    guidance: Stop if the cluster name does not match the request.
+  - description: Check rollout status for the requested deployment.
+    suggested_command: kubectl rollout status deployment/<deployment> -n <namespace>
+success_conditions:
+  - The rollout reports successful completion for the requested deployment.
+  - The namespace and deployment match the request.
+failure_patterns:
+  - pattern: context deadline exceeded
+    meaning: The rollout may still be progressing or the cluster may be unreachable.
+    recovery: Check deployment events and ask before making changes.
+policy:
+  allowed_modes:
+    - assisted
+    - auto_readonly
+metadata:
+  created_at: "2026-05-05T00:00:00Z"
+  updated_at: "2026-05-05T00:00:00Z"
+  confidence: medium
