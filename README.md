@@ -2,6 +2,8 @@
 
 Operation Memory is a local-first CLI for operational recipes: repeatable procedures, decision patterns, incident review steps, release handoffs, and recovery notes that need to remain searchable outside chat.
 
+User documentation is available in the [GitHub Pages user guide](docs/index.md).
+
 ## Why This Exists
 
 Chats are good for coordination, tickets are good for assignment, and docs are good for polished reference material. Operation Memory covers the layer between them: compact operational knowledge that agents and humans can validate, list, search, and reuse.
