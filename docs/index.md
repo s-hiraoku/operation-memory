@@ -1,130 +1,108 @@
 ---
 layout: default
 title: User Guide
+description: Install, use, and write safe Operation Memory recipes.
 ---
 
 # Operation Memory User Guide
 
-Operation Memory is a local-first command line tool for storing operational recipes. A recipe is a structured YAML checklist for repeatable work such as release handoffs, incident reviews, rollout checks, CMS draft handling, and recovery procedures.
+Operation Memory is a local-first CLI for reusable operational recipes. A recipe is a validated YAML checklist for repeatable work such as release handoffs, incident reviews, rollout checks, CMS draft handling, and recovery procedures.
 
-Use this guide when you want to install `opmem`, create a local recipe store, add recipes, search them, and write recipes that are safe to share in a repository.
+Use `opmem` when a useful procedure is too structured to leave in chat, but too lightweight to become a full runbook.
 
-## What Operation Memory Does
+## At A Glance
 
-Operation Memory helps you keep procedural knowledge outside chat threads and ticket comments:
+Operation Memory helps teams and agents:
 
-- Store operational procedures as validated YAML files.
-- Keep recipes in the current project or in your home directory.
-- Search recipes deterministically before starting an operation.
-- Mark each recipe with risk, policy, and allowed execution modes.
-- Review success conditions, failure patterns, and recovery notes.
+- Keep operational procedures as reviewable YAML files.
+- Validate recipes before storing or sharing them.
+- Search local recipes before starting work.
+- Record risk, confirmation requirements, success conditions, and recovery guidance.
+- Avoid storing secrets, customer data, raw logs, browser dumps, or copied incident payloads.
 
-The MVP does not execute recipe steps. It never runs `suggested_command`, browser actions, shell commands, MCP calls, or any other recipe content.
+The MVP is intentionally non-executing. It never runs recipe steps, `suggested_command`, shell commands, browser actions, MCP calls, or any other recipe content.
 
-## Installation
+## Quickstart
 
-Operation Memory requires Node.js 20 or newer.
+Install dependencies and build the CLI:
 
 ```sh
 npm install
 npm run build
 ```
 
-During development, run the CLI from the built output:
+Initialize a project-local recipe store:
 
 ```sh
-node dist/cli.js --help
+node dist/cli.js init
 ```
 
-After package linking or installation, use:
+Add an example recipe:
 
 ```sh
-opmem --help
+node dist/cli.js add examples/recipes/release-handoff.yml
 ```
 
-## Create A Recipe Store
-
-Initialize a project-local store:
+Search before an operation:
 
 ```sh
-opmem init
+node dist/cli.js search "rollback release"
 ```
 
-This creates:
-
-```text
-.operation-memory/recipes/
-```
-
-When this directory exists in the current project, `opmem` reads and writes recipes there. If the current project has not been initialized, `opmem` falls back to:
-
-```text
-~/.operation-memory/recipes/
-```
-
-Use a project-local store when recipes belong to a repository or team workflow. Use the home-directory fallback for personal recipes that should work across projects.
-
-## Add Your First Recipe
-
-Start with one of the example recipes:
+Inspect the matching recipe:
 
 ```sh
-opmem add examples/recipes/release-handoff.yml
+node dist/cli.js show release-handoff
 ```
 
-The command validates the YAML first. If the recipe is valid, it is copied into the active recipe store as:
-
-```text
-<recipe-id>.yml
-```
-
-For `release-handoff`, the stored file is:
-
-```text
-.operation-memory/recipes/release-handoff.yml
-```
-
-## Common Commands
-
-List stored recipes:
-
-```sh
-opmem list
-```
-
-Search recipes:
+After package linking or installation, use `opmem` instead of `node dist/cli.js`:
 
 ```sh
 opmem search "rollback release"
 ```
 
-Show one recipe:
+## Core Workflow
 
-```sh
-opmem show release-handoff
+1. Draft a recipe as YAML.
+2. Validate it with `opmem validate <recipe-file>`.
+3. Add it with `opmem add <recipe-file>`.
+4. Discover it later with `opmem list`, `opmem search <query>`, or `opmem show <recipe-id>`.
+5. Review it over time as the operation, risk, owner, or recovery path changes.
+
+Recipes should capture the reusable procedure, not a raw transcript of one execution.
+
+## Recipe Store Location
+
+`opmem init` creates a project-local store:
+
+```text
+.operation-memory/recipes/
 ```
 
-Validate one or more recipe files before adding them:
+When this directory exists in the current project, `opmem` reads and writes recipes there. If the project has not been initialized, `opmem` falls back to:
 
-```sh
-opmem validate examples/recipes/incident-review.yml examples/recipes/release-handoff.yml
+```text
+~/.operation-memory/recipes/
 ```
 
-Validate the recipes already in the active store:
+Use a project-local store for procedures that should be reviewed with a repository. Use the home-directory fallback for personal recipes that should be available across projects.
 
-```sh
-opmem validate
-```
+## Command Reference
 
-Every command supports JSON output:
+All commands support `--json`.
 
-```sh
-opmem search "customer impact" --json
-```
+| Command | Purpose | Example |
+| --- | --- | --- |
+| `opmem init` | Create `.operation-memory/recipes` in the current project. | `opmem init` |
+| `opmem add <recipe-file>` | Validate and copy a recipe into the active store. | `opmem add examples/recipes/release-handoff.yml` |
+| `opmem list` | List stored recipes. | `opmem list --json` |
+| `opmem search <query>` | Search stored recipes by operational language. | `opmem search "customer impact"` |
+| `opmem show <recipe-id>` | Show one stored recipe. | `opmem show release-handoff` |
+| `opmem validate [recipe-files...]` | Validate files, or validate the active store when no files are passed. | `opmem validate examples/recipes/incident-review.yml` |
 
 ## Recipe Format
 
-A recipe is a YAML file with typed fields. This is a minimal complete example:
+A recipe is a YAML file with typed fields. This example is intentionally small but complete:
 
 ```yaml
 id: cms-save-draft
@@ -139,11 +117,13 @@ intent:
 risk: draft
 steps:
   - description: Click Save Draft, not Publish.
+    expected_result: The CMS confirms the draft was saved.
 success_conditions:
   - The CMS shows a saved draft confirmation.
+  - The article remains unpublished.
 failure_patterns:
   - pattern: Publish button is the only visible primary action
-    meaning: Saving a draft may be unavailable in this workflow state.
+    meaning: Draft saving may be unavailable in this workflow state.
     recovery: Stop and ask an editor whether to continue.
 policy:
   requires_confirmation: false
@@ -155,24 +135,36 @@ metadata:
   confidence: medium
 ```
 
-### Required Fields
+### Field Guide
 
-| Field | Purpose |
-| --- | --- |
-| `id` | Stable identifier used by `opmem show <recipe-id>` and the stored filename. |
-| `name` | Human-readable recipe title. |
-| `description` | Short summary of what the operation does. |
-| `scope` | Where the recipe applies, such as a web app, CLI, Git workflow, cloud system, or SaaS tool. |
-| `intent` | Why the operation exists and what outcome it supports. |
-| `risk` | Impact level for the operation. |
-| `steps` | Descriptive checklist steps. |
-| `metadata` | Creation, update, and confidence information. |
+| Field | Required | Purpose |
+| --- | --- | --- |
+| `id` | Yes | Stable identifier used by `opmem show <recipe-id>` and the stored filename. |
+| `name` | Yes | Human-readable recipe title. |
+| `description` | Yes | Short summary of the operation. |
+| `scope` | Yes | Where the recipe applies, such as a web app, CLI, Git workflow, cloud system, or SaaS tool. |
+| `intent` | Yes | Why the operation exists and what outcome it supports. |
+| `risk` | Yes | Impact level for the operation. |
+| `inputs` | No | Placeholder values the operator must provide, such as namespace, deployment, release version, or ticket id. |
+| `steps` | Yes | Descriptive checklist steps. These are guidance only. |
+| `success_conditions` | No | Signals that the operation is complete. Strong recipes include them. |
+| `failure_patterns` | No | Known symptoms, meanings, and recovery guidance. Strong recipes include them. |
+| `policy` | No | Confirmation requirements and allowed execution modes. |
+| `metadata` | Yes | Creation, update, optional verification, success rate, and confidence information. |
 
-Optional fields such as `inputs`, `success_conditions`, `failure_patterns`, and `policy` should still be included for useful operational recipes.
+### Allowed Scope Kinds
+
+Use the closest stable category for `scope.kind`:
+
+```text
+web, cli, git, ide, mcp, cloud, saas, other
+```
+
+Add durable context such as `domain`, `project`, `command`, or `tool` when it helps search and review.
 
 ## Risk Levels
 
-Choose the lowest accurate risk level:
+Choose the lowest accurate risk level.
 
 | Risk | Use For | Confirmation |
 | --- | --- | --- |
@@ -183,7 +175,7 @@ Choose the lowest accurate risk level:
 | `destructive` | Deleting, overwriting, rolling back, disabling, or risking data loss. | Required. |
 | `real_world` | Affecting people, money, legal obligations, external communications, or physical-world outcomes. | Required. |
 
-Validation rejects `write`, `destructive`, and `real_world` recipes that explicitly set:
+Validation rejects `write`, `destructive`, and `real_world` recipes that explicitly disable confirmation:
 
 ```yaml
 policy:
@@ -192,15 +184,17 @@ policy:
 
 ## Execution Modes
 
-`policy.allowed_modes` describes how a human or agent may use the recipe. These are policy labels only; the MVP does not execute them.
+`policy.allowed_modes` describes how a human or agent may use the recipe. These are policy labels only; the MVP does not execute any mode automatically.
 
 | Mode | Meaning |
 | --- | --- |
 | `manual` | A human reads the recipe as a checklist or reference. |
-| `assisted` | An agent may explain steps or summarize context while the human remains the actor. |
+| `assisted` | An agent may explain steps, summarize context, and point to suggested commands while the human remains the actor. |
 | `prefill` | An agent may prepare text, forms, patches, or command suggestions, then stop before submission. |
 | `confirm` | An agent may proceed only after explicit operation-specific approval. |
 | `auto_readonly` | An agent may perform read-only retrieval or inspection where a future adapter allows it. |
+
+For high-impact recipes, prefer `manual`, `assisted`, or `confirm`, and make the confirmation point explicit in the steps.
 
 ## Search Behavior
 
@@ -214,7 +208,7 @@ policy:
 - `steps`
 - `failure_patterns`
 
-Use practical phrases rather than exact titles:
+Search with the words an operator would naturally remember:
 
 ```sh
 opmem search "rollback"
@@ -225,19 +219,21 @@ opmem search "rollout check"
 
 Search is deterministic and local. Recipe contents are not sent over the network.
 
-## Writing Good Recipes
+## Writing Better Recipes
 
-Good recipes are reusable operational guidance, not transcripts. Before adding a recipe:
+Good recipes are reusable operating knowledge. They should explain what to inspect, what to prepare, where to stop, what success looks like, and how to recover when a known failure appears.
+
+Before adding a recipe:
 
 - Replace sensitive concrete values with placeholders and `inputs`.
-- Use `guidance` for prose and `suggested_command` only for examples.
-- Add success conditions that an operator can check.
+- Use `guidance` for prose and `suggested_command` only for non-executed examples.
+- Add success conditions that can be checked without guessing.
 - Add failure patterns with meaning and recovery guidance.
 - Choose `risk` and `policy.allowed_modes` deliberately.
 - Add confirmation points for high-impact operations.
 - Run `opmem validate <recipe-file>`.
 
-Prefer this:
+Prefer reusable placeholders:
 
 ```yaml
 inputs:
@@ -248,16 +244,17 @@ inputs:
 steps:
   - description: Check rollout status for the requested deployment.
     suggested_command: kubectl rollout status deployment/<deployment> -n <namespace>
+    expected_result: The rollout reports successful completion.
 ```
 
-Avoid this:
+Avoid one-off command history:
 
 ```yaml
 steps:
-  - description: Run a one-off production command copied from shell history.
+  - description: Run a production command copied from the last incident.
 ```
 
-For more detail, see the [Recipe Quality Guide](recipe-quality.md).
+For more examples, see the [Recipe Quality Guide](recipe-quality.md).
 
 ## Security Guidance
 
@@ -266,12 +263,12 @@ Treat operational recipes as sensitive when they mention infrastructure, inciden
 Do not store:
 
 - Cookies, tokens, passwords, private keys, or session IDs.
-- Personal information or customer data.
-- Regulated data.
-- Raw logs, raw DOM snapshots, raw screenshots, HAR files, or SaaS exports.
-- Internal account IDs, signed URLs, or production-only hostnames when placeholders would work.
+- Personal information, customer data, regulated data, or private message contents.
+- Raw logs, raw DOM snapshots, raw screenshots, HAR files, browser storage, or SaaS exports.
+- Internal account IDs, signed URLs, customer names, production-only hostnames, or tenant URLs when placeholders would work.
+- Credentials embedded in CLI commands, URLs, headers, environment variables, or config snippets.
 
-If sensitive material is committed by mistake, remove it from the recipe, rotate any exposed credentials, and follow your repository's secret-removal process.
+If sensitive material is committed by mistake, remove it from the recipe, rotate any exposed credentials, and follow the repository's secret-removal process.
 
 See the [security policy](https://github.com/s-hiraoku/operation-memory/blob/main/SECURITY.md) for review guidance.
 
@@ -279,7 +276,7 @@ See the [security policy](https://github.com/s-hiraoku/operation-memory/blob/mai
 
 ### `Recipe not found`
 
-Check that you are in the same project where you ran `opmem init`, then run:
+Check that you are in the same project where you ran `opmem init`, then list the active store:
 
 ```sh
 opmem list
@@ -299,7 +296,13 @@ The output points to the invalid field. Common issues include missing required f
 
 ### Search Returns Nothing
 
-Try broader operational words:
+Confirm the recipe was added to the active store:
+
+```sh
+opmem list
+```
+
+Then try broader operational words:
 
 ```sh
 opmem search "release"
@@ -307,11 +310,15 @@ opmem search "incident"
 opmem search "rollback"
 ```
 
-Also confirm the recipe was added to the active store:
+### `opmem` Command Is Not Found
+
+During development, use the built CLI directly:
 
 ```sh
-opmem list
+node dist/cli.js --help
 ```
+
+If you expect the `opmem` binary to exist, confirm the package has been linked or installed after running `npm run build`.
 
 ## Next Steps
 
