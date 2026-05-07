@@ -21,6 +21,7 @@ main() {
   run_if_script_exists typecheck
   run_if_script_exists test
   run_if_script_exists build
+  run_if_script_exists smoke
 
   echo "Verification script completed"
 }

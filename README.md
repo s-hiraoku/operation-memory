@@ -79,6 +79,17 @@ opmem validate examples/recipes/incident-review.yml examples/recipes/release-han
 opmem validate --json
 ```
 
+## MVP Smoke Check
+
+Run the complete MVP flow from a temporary recipe store:
+
+```sh
+npm run build
+npm run smoke
+```
+
+The smoke check initializes a store, adds two example recipes, lists recipes, searches by operational terms, shows a recipe, and validates the stored recipes. It uses the built CLI and deletes its temporary store when finished.
+
 ## Commands
 
 | Command | Purpose |

@@ -122,6 +122,17 @@ Every command supports JSON output:
 opmem search "customer impact" --json
 ```
 
+## MVP Smoke Check
+
+To confirm the MVP end to end from a clean temporary store, run:
+
+```sh
+npm run build
+npm run smoke
+```
+
+The smoke check initializes a recipe store, adds example recipes, lists stored recipes, searches by operational wording, shows one recipe, and validates the active store. It uses `dist/cli.js` and removes the temporary store after the check.
+
 ## Recipe Format
 
 A recipe is a YAML file with typed fields. This is a minimal complete example:

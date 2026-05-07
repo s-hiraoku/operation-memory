@@ -32,6 +32,8 @@ Record dated progress notes here.
 - 2026-05-07: Expanded deterministic search coverage to guidance, suggested commands, success conditions, and failure recovery notes.
 - 2026-05-07: Added GitHub Pages harness documentation adapted from `s-hiraoku/codex-harnesses` and made the Pages workflow build on pull requests while deploying only from `main`.
 - 2026-05-07: Ran `npm run typecheck`, `npm run test`, and `npm run verify` successfully.
+- 2026-05-07: Added `npm run smoke` so the built CLI can be checked end to end against example recipes from a temporary store.
+- 2026-05-07: Ran `npm run verify` successfully after adding the smoke check.
 
 ## Blockers
 

@@ -13,7 +13,8 @@ Operation Memory includes a small Codex harness adapted from
 | File | Purpose |
 | --- | --- |
 | `AGENTS.md` | Durable repository guidance for Codex work. |
-| `scripts/verify.sh` | Runs the repository verification loop: typecheck, tests, and build. |
+| `scripts/verify.sh` | Runs the repository verification loop: typecheck, tests, build, and smoke. |
+| `scripts/smoke.sh` | Runs the built CLI through the MVP recipe-store flow in a temporary directory. |
 | `scripts/checkpoint.sh` | Appends resumable task state to `ledger/current.md`. |
 | `ledger/current.md` | Active task notes and checkpoints. |
 | `ledger/decisions.md` | Durable implementation decisions. |
@@ -35,7 +36,7 @@ Before finalizing a change, run:
 npm run verify
 ```
 
-The GitHub Actions Verify workflow runs the same verification script on pull requests and pushes to `main`.
+The verification script runs typecheck, tests, build, and the smoke check. The GitHub Actions Verify workflow runs the same verification script on pull requests and pushes to `main`.
 
 ## Boundaries
 
