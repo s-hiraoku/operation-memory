@@ -259,6 +259,10 @@ steps:
 
 For more detail, see the [Recipe Quality Guide](recipe-quality.md).
 
+## Codex Harness
+
+This repository includes a small Codex development harness for long-running implementation work. See the [Codex Harness](harness.md) page for the included files, verification loop, ledger workflow, and safety boundaries.
+
 ## Security Guidance
 
 Treat operational recipes as sensitive when they mention infrastructure, incidents, customers, releases, or internal procedures.

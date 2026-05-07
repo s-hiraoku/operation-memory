@@ -150,7 +150,7 @@ The CLI delegates storage, recipe validation, policy, and search behavior to the
 
 ## Development Harness
 
-This repository includes a small Codex harness adapted from [`s-hiraoku/codex-harnesses`](https://github.com/s-hiraoku/codex-harnesses):
+This repository includes a small Codex harness adapted from [`s-hiraoku/codex-harnesses`](https://github.com/s-hiraoku/codex-harnesses). The harness is documented in the [GitHub Pages guide](docs/harness.md):
 
 - `AGENTS.md` keeps durable project guidance close to the code.
 - `scripts/verify.sh` runs typecheck, tests, and build.

@@ -1,6 +1,7 @@
 name: Deploy GitHub Pages
 
 on:
+  pull_request:
   push:
     branches:
       - main
@@ -37,6 +38,7 @@ jobs:
           path: ./_site
 
   deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
