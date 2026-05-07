@@ -81,14 +81,18 @@ export class FileSystemRecipeStore {
   }
 
   async list(): Promise<OperationRecipe[]> {
+    const files = await this.recipeFiles();
+    const recipes = await Promise.all(files.map((file) => readRecipeFile(file)));
+    return recipes.sort((a, b) => a.id.localeCompare(b.id));
+  }
+
+  async recipeFiles(): Promise<string[]> {
     await mkdir(this.recipesDir, { recursive: true });
     const entries = await readdir(this.recipesDir, { withFileTypes: true });
-    const files = entries
+    return entries
       .filter((entry) => entry.isFile() && /\.ya?ml$/i.test(entry.name))
       .map((entry) => path.join(this.recipesDir, entry.name))
       .sort();
-    const recipes = await Promise.all(files.map((file) => readRecipeFile(file)));
-    return recipes.sort((a, b) => a.id.localeCompare(b.id));
   }
 
   async show(id: string): Promise<OperationRecipe> {

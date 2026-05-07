@@ -9,6 +9,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "checkpoint": "bash scripts/checkpoint.sh",
+    "smoke": "bash scripts/smoke.sh",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "verify": "bash scripts/verify.sh",

@@ -102,6 +102,17 @@ All commands support `--json`.
 | `opmem show <recipe-id>` | Show one stored recipe. | `opmem show release-handoff` |
 | `opmem validate [recipe-files...]` | Validate files, or validate the active store when no files are passed. | `opmem validate examples/recipes/incident-review.yml` |
 
+## MVP Smoke Check
+
+To confirm the MVP end to end from a clean temporary store, run:
+
+```sh
+npm run build
+npm run smoke
+```
+
+The smoke check initializes a recipe store, adds example recipes, lists stored recipes, searches by operational wording, shows one recipe, and validates the active store. It uses `dist/cli.js` and removes the temporary store after the check.
+
 ## Recipe Format
 
 A recipe is a YAML file with typed fields. This example is intentionally small but complete:
@@ -257,6 +268,10 @@ steps:
 ```
 
 For more examples, see the [Recipe Quality Guide](recipe-quality.md).
+
+## Codex Harness
+
+This repository includes a small Codex development harness for long-running implementation work. See the [Codex Harness](harness.md) page for the included files, verification loop, ledger workflow, and safety boundaries.
 
 ## Security Guidance
 

@@ -140,15 +140,25 @@ export function createProgram(): Command {
     .option("--json", "Output JSON")
     .action((recipeFiles: string[], options: JsonOption) =>
       runAction(async () => {
-        const files = recipeFiles.length > 0 ? recipeFiles : (await new FileSystemRecipeStore().list()).map((recipe) => recipe.id);
         const results: ValidationResult[] = [];
 
         if (recipeFiles.length === 0) {
-          for (const recipe of await new FileSystemRecipeStore().list()) {
-            results.push({ file: recipe.id, valid: true, id: recipe.id });
+          for (const recipeFile of await new FileSystemRecipeStore().recipeFiles()) {
+            try {
+              const recipe = await validateRecipeFile(recipeFile);
+              results.push({ file: recipeFile, valid: true, id: recipe.id });
+            } catch (error) {
+              if (error instanceof ZodError) {
+                results.push({ file: recipeFile, valid: false, errors: validationErrors(error) });
+              } else if (error instanceof Error) {
+                results.push({ file: recipeFile, valid: false, errors: [error.message] });
+              } else {
+                results.push({ file: recipeFile, valid: false, errors: [String(error)] });
+              }
+            }
           }
         } else {
-          for (const recipeFile of files) {
+          for (const recipeFile of recipeFiles) {
             try {
               const recipe = await validateRecipeFile(recipeFile);
               results.push({ file: recipeFile, valid: true, id: recipe.id });

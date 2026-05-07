@@ -25,7 +25,11 @@ export function searchableFields(recipe: OperationRecipe): Record<string, string
     ]).join(" "),
     "intent.description": recipe.intent.description,
     "steps.description": recipe.steps.map((step) => step.description).join(" "),
+    "steps.guidance": recipe.steps.map((step) => step.guidance).filter(Boolean).join(" "),
+    "steps.suggested_command": recipe.steps.map((step) => step.suggested_command).filter(Boolean).join(" "),
+    success_conditions: recipe.success_conditions.join(" "),
     "failure_patterns.meaning": recipe.failure_patterns.map((failure) => failure.meaning).join(" "),
+    "failure_patterns.recovery": recipe.failure_patterns.map((failure) => failure.recovery).filter(Boolean).join(" "),
   };
 }
 

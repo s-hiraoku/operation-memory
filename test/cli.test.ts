@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdtemp, realpath, rm } from "node:fs/promises";
+import { mkdtemp, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -56,6 +56,29 @@ describe("opmem CLI", () => {
     expect(validation).toMatchObject({
       ok: true,
       results: [expect.objectContaining({ valid: true, id: "eks-rollout-check" })],
+    });
+  });
+
+  it("validates stored recipe files and reports invalid files without aborting", async () => {
+    cwd = await mkdtemp(path.join(tmpdir(), "opmem-cli-"));
+
+    await runOpmem(["init"]);
+    await runOpmem(["add", recipePath]);
+    await writeFile(
+      path.join(cwd, ".operation-memory", "recipes", "broken.yml"),
+      "id: broken\nname: Broken\n",
+      "utf8",
+    );
+
+    const validation = await runOpmem(["validate", "--json"]).catch((error: unknown) => error);
+
+    expect(validation).toMatchObject({ code: 1 });
+    expect(parseJson(validation.stdout)).toMatchObject({
+      ok: false,
+      results: [
+        expect.objectContaining({ valid: false, file: expect.stringContaining("broken.yml") }),
+        expect.objectContaining({ valid: true, id: "eks-rollout-check" }),
+      ],
     });
   });
 });

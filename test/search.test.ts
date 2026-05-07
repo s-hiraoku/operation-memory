@@ -80,7 +80,7 @@ describe("filesystem recipe store", () => {
 });
 
 describe("recipe search", () => {
-  it("scores id, name, description, scope, intent, steps, and failure meanings", () => {
+  it("scores id, name, description, scope, intent, steps, success conditions, and failures", () => {
     const results = searchRecipeList(
       [
         recipe({
@@ -89,9 +89,20 @@ describe("recipe search", () => {
           description: "Investigate elevated latency",
           scope: { kind: "cloud", project: "api-runtime", command: "kubectl" },
           intent: { description: "Restore API reliability" },
-          steps: [{ description: "Inspect upstream timeout logs" }],
+          steps: [
+            {
+              description: "Inspect upstream timeout logs",
+              suggested_command: "kubectl logs deployment/api",
+              guidance: "Compare the deployment status with the rollout dashboard.",
+            },
+          ],
+          success_conditions: ["The rollout dashboard shows all regions healthy."],
           failure_patterns: [
-            { pattern: "gateway timeout", meaning: "Gateway timeout from upstream service" },
+            {
+              pattern: "gateway timeout",
+              meaning: "Gateway timeout from upstream service",
+              recovery: "Escalate to the API owner with the affected upstream dependency.",
+            },
           ],
         }),
         recipe({
@@ -101,13 +112,22 @@ describe("recipe search", () => {
           scope: { kind: "saas", project: "finance" },
         }),
       ],
-      "upstream timeout",
+      "upstream timeout kubectl rollout dashboard",
     );
 
     expect(results).toHaveLength(1);
     expect(results[0].recipe.id).toBe("api-timeout");
     expect(results[0].score).toBeGreaterThan(0);
-    expect(results[0].matches).toEqual(expect.arrayContaining(["steps.description", "failure_patterns.meaning"]));
+    expect(results[0].matches).toEqual(
+      expect.arrayContaining([
+        "steps.description",
+        "steps.suggested_command",
+        "steps.guidance",
+        "success_conditions",
+        "failure_patterns.meaning",
+        "failure_patterns.recovery",
+      ]),
+    );
   });
 
   it("searches recipes from the filesystem store", async () => {

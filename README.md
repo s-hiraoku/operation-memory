@@ -79,6 +79,17 @@ opmem validate examples/recipes/incident-review.yml examples/recipes/release-han
 opmem validate --json
 ```
 
+## MVP Smoke Check
+
+Run the complete MVP flow from a temporary recipe store:
+
+```sh
+npm run build
+npm run smoke
+```
+
+The smoke check initializes a store, adds two example recipes, lists recipes, searches by operational terms, shows a recipe, and validates the stored recipes. It uses the built CLI and deletes its temporary store when finished.
+
 ## Commands
 
 | Command | Purpose |
@@ -150,7 +161,7 @@ The CLI delegates storage, recipe validation, policy, and search behavior to the
 
 ## Development Harness
 
-This repository includes a small Codex harness adapted from [`s-hiraoku/codex-harnesses`](https://github.com/s-hiraoku/codex-harnesses):
+This repository includes a small Codex harness adapted from [`s-hiraoku/codex-harnesses`](https://github.com/s-hiraoku/codex-harnesses). The harness is documented in the [GitHub Pages guide](docs/harness.md):
 
 - `AGENTS.md` keeps durable project guidance close to the code.
 - `scripts/verify.sh` runs typecheck, tests, and build.
