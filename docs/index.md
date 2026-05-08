@@ -8,7 +8,29 @@ description: Install, use, and write safe Operation Memory recipes.
 
 Operation Memory is a local-first CLI for reusable operational recipes. A recipe is a validated YAML checklist for repeatable work such as release handoffs, incident reviews, rollout checks, CMS draft handling, and recovery procedures.
 
-Use `opmem` when a useful procedure is too structured to leave in chat, but too lightweight to become a full runbook.
+Use `opmem` when a useful procedure is too structured to leave in chat, but too lightweight to become a full runbook. The MVP is intentionally non-executing: it stores, validates, lists, searches, and shows recipes, but it never runs recipe steps, `suggested_command`, shell commands, browser actions, MCP calls, or any other recipe content.
+
+## Fast Path
+
+If you only want to prove the tool works, run this from a checkout:
+
+```sh
+npm install
+npm run build
+node dist/cli.js init
+node dist/cli.js add examples/recipes/release-handoff.yml
+node dist/cli.js list
+node dist/cli.js search "rollback release"
+node dist/cli.js show release-handoff
+node dist/cli.js validate
+```
+
+Success means:
+
+- `list` shows `release-handoff`.
+- `search "rollback release"` finds the release handoff recipe.
+- `show release-handoff` prints the stored recipe summary.
+- `validate` reports the active store is valid.
 
 ## At A Glance
 
@@ -20,9 +42,9 @@ Operation Memory helps teams and agents:
 - Record risk, confirmation requirements, success conditions, and recovery guidance.
 - Avoid storing secrets, customer data, raw logs, browser dumps, or copied incident payloads.
 
-The MVP is intentionally non-executing. It never runs recipe steps, `suggested_command`, shell commands, browser actions, MCP calls, or any other recipe content.
+After the first-use flow, you will have a built CLI, a local recipe store at `.operation-memory/recipes/`, stored example recipes, a working search flow, and a template for writing your own recipe safely.
 
-## Quickstart
+## Prerequisites
 
 Operation Memory requires Node.js 20 or newer.
 
@@ -33,35 +55,72 @@ npm install
 npm run build
 ```
 
-Initialize a project-local recipe store:
+When working from this repository, run the CLI as:
+
+```sh
+node dist/cli.js --help
+```
+
+After package linking or installation, the same commands are available as `opmem`:
+
+```sh
+opmem --help
+```
+
+The examples below use `node dist/cli.js` so they work immediately from a checkout. If you have linked or installed the package, replace `node dist/cli.js` with `opmem`.
+
+## First Use: Create, Add, Search, Show
+
+Create a project-local recipe store:
 
 ```sh
 node dist/cli.js init
 ```
 
-Add an example recipe:
+This creates:
+
+```text
+.operation-memory/recipes/
+```
+
+Add the release handoff example:
 
 ```sh
 node dist/cli.js add examples/recipes/release-handoff.yml
 ```
 
-Search before an operation:
+Add the incident review example:
+
+```sh
+node dist/cli.js add examples/recipes/incident-review.yml
+```
+
+List the stored recipes. You should see `release-handoff` and `incident-review`:
+
+```sh
+node dist/cli.js list
+```
+
+Search by operational language, not just exact recipe titles:
 
 ```sh
 node dist/cli.js search "rollback release"
+node dist/cli.js search "customer impact"
 ```
 
-Inspect the matching recipe:
+Show one stored recipe:
 
 ```sh
 node dist/cli.js show release-handoff
 ```
 
-After package linking or installation, use `opmem` instead of `node dist/cli.js`:
+Validate the active store. This checks the recipes you added:
 
 ```sh
-opmem search "rollback release"
+node dist/cli.js validate
 ```
+
+At this point Operation Memory is usable: you can add YAML recipes, search them before starting operational work, show the matching recipe, and validate that stored recipes still satisfy the schema and hard safety rules.
 
 ## Core Workflow
 
@@ -73,49 +132,67 @@ opmem search "rollback release"
 
 Recipes should capture the reusable procedure, not a raw transcript of one execution.
 
-## Recipe Store Location
+## Store Location
 
-`opmem init` creates a project-local store:
+Operation Memory chooses the active store from your current working directory:
 
-```text
-.operation-memory/recipes/
-```
-
-When this directory exists in the current project, `opmem` reads and writes recipes there. If the project has not been initialized, `opmem` falls back to:
-
-```text
-~/.operation-memory/recipes/
-```
+1. If `.operation-memory/recipes/` exists in the current project, commands read and write there.
+2. Otherwise, commands use the personal fallback at `~/.operation-memory/recipes/`.
 
 Use a project-local store for procedures that should be reviewed with a repository. Use the home-directory fallback for personal recipes that should be available across projects.
+
+The `add` command copies a validated recipe into the active store as:
+
+```text
+<recipe-id>.yml
+```
+
+For example, adding `examples/recipes/release-handoff.yml` stores:
+
+```text
+.operation-memory/recipes/release-handoff.yml
+```
 
 ## Command Reference
 
 All commands support `--json`.
 
-| Command | Purpose | Example |
+| Command | What It Does | Common Use |
 | --- | --- | --- |
-| `opmem init` | Create `.operation-memory/recipes` in the current project. | `opmem init` |
-| `opmem add <recipe-file>` | Validate and copy a recipe into the active store. | `opmem add examples/recipes/release-handoff.yml` |
-| `opmem list` | List stored recipes. | `opmem list --json` |
-| `opmem search <query>` | Search stored recipes by operational language. | `opmem search "customer impact"` |
-| `opmem show <recipe-id>` | Show one stored recipe. | `opmem show release-handoff` |
-| `opmem validate [recipe-files...]` | Validate files, or validate the active store when no files are passed. | `opmem validate examples/recipes/incident-review.yml` |
+| `init` | Creates `.operation-memory/recipes` in the current directory. | Start a project-local recipe store. |
+| `add <recipe-file>` | Validates a YAML recipe and copies it into the active store. | Add a new operational procedure. |
+| `list` | Lists stored recipes. | See what is available before searching. |
+| `search <query>` | Ranks text matches across recipe content. | Find a procedure by practical terms such as `rollback`, `customer impact`, or `save draft`. |
+| `show <recipe-id>` | Prints one stored recipe summary. | Review the procedure before using it. |
+| `validate [recipe-files...]` | Validates passed files, or the active store when no files are passed. | Check a recipe before adding it, or check the whole store. |
 
-## MVP Smoke Check
-
-To confirm the MVP end to end from a clean temporary store, run:
+Examples:
 
 ```sh
-npm run build
-npm run smoke
+node dist/cli.js search "customer impact" --json
+node dist/cli.js validate --json
 ```
 
-The smoke check initializes a recipe store, adds example recipes, lists stored recipes, searches by operational wording, shows one recipe, and validates the active store. It uses `dist/cli.js` and removes the temporary store after the check.
+## Write Your First Recipe By Copying An Example
 
-## Recipe Format
+The easiest way to start is to copy a working example, then edit the plain-language fields. Do not start from a blank file unless you already know the schema.
 
-A recipe is a YAML file with typed fields. This example is intentionally small but complete:
+```sh
+cp examples/recipes/cms-save-draft.yml my-recipe.yml
+```
+
+Open `my-recipe.yml` and edit these fields first:
+
+- `id`: change this to a stable lowercase identifier, such as `release-rollback-check`.
+- `name`: write the human-readable title.
+- `description`: summarize the operation in one sentence.
+- `scope`: describe the tool, project, app, or command family where the recipe applies.
+- `intent.description`: explain why this operation exists.
+- `steps`: replace the checklist with reusable steps.
+- `success_conditions`: list what proves the operation is complete.
+- `failure_patterns`: list common ways the operation gets stuck and what to do next.
+
+For example, a safe draft recipe looks like this:
 
 ```yaml
 id: cms-save-draft
@@ -128,9 +205,15 @@ scope:
 intent:
   description: Preserve article edits in draft state for later human review.
 risk: draft
+inputs:
+  - name: article
+    description: Draft article or CMS entry to save.
+    required: true
 steps:
-  - description: Click Save Draft, not Publish.
-    expected_result: The CMS confirms the draft was saved.
+  - description: Open the requested article in the CMS editor.
+    guidance: Confirm the title matches the request before changing anything.
+  - description: Save the article as a draft.
+    guidance: Click Save Draft, not Publish.
 success_conditions:
   - The CMS shows a saved draft confirmation.
   - The article remains unpublished.
@@ -148,12 +231,40 @@ metadata:
   confidence: medium
 ```
 
-### Field Guide
+Validate your edited file before adding it:
+
+```sh
+node dist/cli.js validate my-recipe.yml
+```
+
+Add it to the active store:
+
+```sh
+node dist/cli.js add my-recipe.yml
+```
+
+Find it by terms an operator would naturally remember:
+
+```sh
+node dist/cli.js search "save draft"
+```
+
+Show it:
+
+```sh
+node dist/cli.js show cms-save-draft
+```
+
+If you changed the `id`, use your new id in the `show` command.
+
+Good first edits are small: change one example into one real procedure, validate it, add it, and search for it. Once that works, write more recipes the same way.
+
+## Field Guide
 
 | Field | Required | Purpose |
 | --- | --- | --- |
-| `id` | Yes | Stable identifier used by `opmem show <recipe-id>` and the stored filename. |
-| `name` | Yes | Human-readable recipe title. |
+| `id` | Yes | Stable identifier used by `show <recipe-id>` and the stored filename. |
+| `name` | Yes | Human-readable title. |
 | `description` | Yes | Short summary of the operation. |
 | `scope` | Yes | Where the recipe applies, such as a web app, CLI, Git workflow, cloud system, or SaaS tool. |
 | `intent` | Yes | Why the operation exists and what outcome it supports. |
@@ -165,7 +276,18 @@ metadata:
 | `policy` | No | Confirmation requirements and allowed execution modes. |
 | `metadata` | Yes | Creation, update, optional verification, success rate, and confidence information. |
 
-### Allowed Scope Kinds
+Use `guidance` for prose. Use `suggested_command` only for non-executed command examples:
+
+```yaml
+steps:
+  - description: Check rollout status for the requested deployment.
+    guidance: Stop if the current cluster context does not match the request.
+    suggested_command: kubectl rollout status deployment/<deployment> -n <namespace>
+```
+
+Operation Memory stores that command as text. It does not run it.
+
+## Allowed Scope Kinds
 
 Use the closest stable category for `scope.kind`:
 
@@ -211,7 +333,7 @@ For high-impact recipes, prefer `manual`, `assisted`, or `confirm`, and make the
 
 ## Search Behavior
 
-`opmem search <query>` ranks text matches across recipe content, including:
+`search <query>` ranks text matches across:
 
 - `id`
 - `name`
@@ -221,18 +343,18 @@ For high-impact recipes, prefer `manual`, `assisted`, or `confirm`, and make the
 - `steps`
 - `failure_patterns`
 
-Search with the words an operator would naturally remember:
-
-```sh
-opmem search "rollback"
-opmem search "customer impact"
-opmem search "save draft"
-opmem search "rollout check"
-```
-
 Search is deterministic and local. Recipe contents are not sent over the network.
 
-## Writing Better Recipes
+Good queries use the words someone would naturally remember during work:
+
+```sh
+node dist/cli.js search "rollback"
+node dist/cli.js search "customer impact"
+node dist/cli.js search "save draft"
+node dist/cli.js search "rollout check"
+```
+
+## Writing Safe, Useful Recipes
 
 Good recipes are reusable operating knowledge. They should explain what to inspect, what to prepare, where to stop, what success looks like, and how to recover when a known failure appears.
 
@@ -244,7 +366,7 @@ Before adding a recipe:
 - Add failure patterns with meaning and recovery guidance.
 - Choose `risk` and `policy.allowed_modes` deliberately.
 - Add confirmation points for high-impact operations.
-- Run `opmem validate <recipe-file>`.
+- Run `validate <recipe-file>`.
 
 Prefer reusable placeholders:
 
@@ -291,54 +413,72 @@ See the [security policy](https://github.com/s-hiraoku/operation-memory/blob/mai
 
 ## Troubleshooting
 
-### `Recipe not found`
+### `opmem` Command Not Found
 
-Check that you are in the same project where you ran `opmem init`, then list the active store:
-
-```sh
-opmem list
-```
-
-If no project-local `.operation-memory/recipes` directory exists, `opmem` may be reading from `~/.operation-memory/recipes/`.
-
-### Validation Fails
-
-Run:
-
-```sh
-opmem validate <recipe-file>
-```
-
-The output points to the invalid field. Common issues include missing required fields, invalid risk names, invalid execution modes, timestamps that are not ISO datetimes, or high-risk recipes that disable confirmation.
-
-### Search Returns Nothing
-
-Confirm the recipe was added to the active store:
-
-```sh
-opmem list
-```
-
-Then try broader operational words:
-
-```sh
-opmem search "release"
-opmem search "incident"
-opmem search "rollback"
-```
-
-### `opmem` Command Is Not Found
-
-During development, use the built CLI directly:
+From a repository checkout, use:
 
 ```sh
 node dist/cli.js --help
 ```
 
-If you expect the `opmem` binary to exist, confirm the package has been linked or installed after running `npm run build`.
+If `dist/cli.js` does not exist, build first:
+
+```sh
+npm run build
+```
+
+Use `opmem` only after linking or installing the package.
+
+### Recipe Not Found
+
+Check the active store:
+
+```sh
+node dist/cli.js list
+```
+
+If the recipe is missing, confirm you are in the project where you ran `init`. If no project-local `.operation-memory/recipes/` directory exists, Operation Memory may be reading from `~/.operation-memory/recipes/`.
+
+### Validation Fails
+
+Run validation against the file you are editing:
+
+```sh
+node dist/cli.js validate <recipe-file>
+```
+
+The output points to the invalid field. Common issues include missing required fields, invalid risk names, invalid execution modes, timestamps that are not ISO datetimes, and high-risk recipes that disable confirmation.
+
+### Search Returns Nothing
+
+Confirm recipes were added:
+
+```sh
+node dist/cli.js list
+```
+
+Then try broader operational words:
+
+```sh
+node dist/cli.js search "release"
+node dist/cli.js search "incident"
+node dist/cli.js search "rollback"
+```
+
+### I Want To Confirm The Whole MVP Works
+
+Run the smoke check:
+
+```sh
+npm run build
+npm run smoke
+```
+
+The smoke check creates a temporary store, adds example recipes, lists recipes, searches, shows one recipe, validates the store, and removes the temporary store.
 
 ## Next Steps
 
 - Read the [Recipe Quality Guide](recipe-quality.md).
 - Review the [Operation Memory Specification](https://github.com/s-hiraoku/operation-memory/blob/main/SPEC.md).
 - Inspect complete examples in [`examples/recipes/`](https://github.com/s-hiraoku/operation-memory/tree/main/examples/recipes).
+- For repository development workflow, see the [Codex Harness](harness.md).
