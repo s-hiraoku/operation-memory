@@ -1,113 +1,77 @@
 # Operation Memory
 
-Operation Memory is a local-first CLI for operational recipes: repeatable procedures, decision patterns, incident review steps, release handoffs, and recovery notes that need to remain searchable outside chat.
+Operation Memory is a local-first CLI for storing operational recipes: short, validated YAML procedures for work that needs to stay searchable after chat threads, tickets, and handoff notes move on.
 
-User documentation is available in the [GitHub Pages user guide](docs/index.md).
+Use it for release handoffs, incident review steps, rollout checks, recovery notes, CMS draft handling, and other repeatable operational procedures. The MVP is deliberately non-executing: it stores, validates, lists, searches, and shows recipes, but it never runs recipe steps, `suggested_command`, shell commands, browser actions, or MCP calls.
 
-## Why This Exists
+Example: after a release, store the rollback trigger, validation signal, and owner as a recipe. Next time someone searches `rollback release`, they can find the handoff without digging through chat.
 
-Chats are good for coordination, tickets are good for assignment, and docs are good for polished reference material. Operation Memory covers the layer between them: compact operational knowledge that agents and humans can validate, list, search, and reuse.
+The full getting-started path is in the [GitHub Pages user guide](docs/index.md).
 
-Compared with a wiki, Operation Memory favors structured recipes over long pages. Compared with a vector database, the MVP starts with auditable local YAML and deterministic search. Compared with an issue tracker, it does not own workflow state, priority, or assignment.
+## Try It In 2 Minutes
 
-## What It Is Not
+Prerequisite: Node.js 20 or newer.
 
-- RPA: RPA executes scripted workflows. Operation Memory stores the procedure and safety notes; this MVP does not execute the steps.
-- Memory: ordinary agent memory remembers user or project context. Operation Memory remembers how to perform operations.
-- RAG: RAG retrieves unstructured or semi-structured documents. Operation Memory retrieves validated recipes with typed fields and policy metadata.
-- MCP: MCP gives tools an official AI-facing API. Operation Memory is useful when a web app, CLI, SaaS product, or cloud console has no MCP server yet.
-- Skills: skills package agent capabilities and instructions. Operation Memory stores local operational experience that can be searched before using those capabilities.
-- Observability: observability records what systems did. Operation Memory records what operators or agents should do, what can fail, and when to ask a human.
-
-## Install
+From a fresh checkout:
 
 ```sh
 npm install
 npm run build
+node dist/cli.js init
+node dist/cli.js add examples/recipes/release-handoff.yml
+node dist/cli.js list
+node dist/cli.js search "rollback release"
+node dist/cli.js show release-handoff
+node dist/cli.js validate
 ```
 
-Run during development:
+That creates a project-local store at `.operation-memory/recipes/`, adds a validated example recipe, searches for it, prints the stored recipe summary, and validates the store.
 
-```sh
-node dist/cli.js --help
-```
-
-After package linking or installation:
-
-```sh
-opmem --help
-```
-
-## Usage
-
-Initialize a local recipe store:
+If you link or install the package, use `opmem` instead of `node dist/cli.js`:
 
 ```sh
 opmem init
-```
-
-Add a recipe:
-
-```sh
-opmem add examples/recipes/release-handoff.yml
-```
-
-List recipes:
-
-```sh
+opmem add examples/recipes/incident-review.yml
 opmem list
-opmem list --json
+opmem search "customer impact"
 ```
 
-Search recipes:
+If you want to write your own recipe, start by copying an example and editing the plain-language fields:
 
 ```sh
-opmem search "rollback release"
-opmem search "customer impact" --json
+cp examples/recipes/cms-save-draft.yml my-recipe.yml
+node dist/cli.js validate my-recipe.yml
+node dist/cli.js add my-recipe.yml
 ```
 
-Show one recipe:
+## What Operation Memory Is For
 
-```sh
-opmem show release-handoff
-```
+Operation Memory covers the layer between chat, tickets, and polished documentation:
 
-Validate recipe files, or validate the local store when no file is passed:
+- Store reusable operational procedures as reviewable YAML.
+- Validate recipe shape and hard policy invariants before adding recipes.
+- Keep recipes project-local under `.operation-memory/recipes` or personal under `~/.operation-memory/recipes`.
+- Search recipes deterministically on your machine.
+- Mark risk, allowed usage modes, confirmation expectations, success conditions, and failure patterns.
 
-```sh
-opmem validate examples/recipes/incident-review.yml examples/recipes/release-handoff.yml
-opmem validate --json
-```
+It is not an execution system, RPA runner, vector database, issue tracker, observability backend, or MCP server. Recipe steps are guidance for humans and agents to read.
 
-## MVP Smoke Check
-
-Run the complete MVP flow from a temporary recipe store:
-
-```sh
-npm run build
-npm run smoke
-```
-
-The smoke check initializes a store, adds two example recipes, lists recipes, searches by operational terms, shows a recipe, and validates the stored recipes. It uses the built CLI and deletes its temporary store when finished.
-
-## Commands
+## Common Commands
 
 | Command | Purpose |
 | --- | --- |
 | `opmem init` | Create `.operation-memory/recipes` in the current project. |
-| `opmem add <recipe-file>` | Validate and copy a YAML recipe into the local store. |
+| `opmem add <recipe-file>` | Validate and copy a YAML recipe into the active store. |
 | `opmem list` | List stored recipes. |
-| `opmem search <query>` | Rank text matches across id, name, description, scope, intent, steps, and failure patterns. |
-| `opmem show <recipe-id>` | Print a stored recipe summary. |
-| `opmem validate [recipe-files...]` | Validate recipe files, or the stored recipes if no files are passed. |
+| `opmem search <query>` | Rank text matches across recipe content. |
+| `opmem show <recipe-id>` | Print one stored recipe summary. |
+| `opmem validate [recipe-files...]` | Validate recipe files, or validate the active store when no files are passed. |
 
-All commands support `--json`.
+Every command supports `--json`.
 
-## Recipe Shape
+## Recipe Example
 
-Recipes are YAML files with an id, name, description, scope, intent, risk, steps, success conditions, failure patterns, policy, and metadata. See `examples/recipes/*.yml` for complete examples.
-
-Recipe steps are descriptive guidance only. This MVP never executes `suggested_command`, shell commands, browser actions, MCP calls, or any other step content.
+Recipes are YAML files with a stable id, scope, intent, risk, steps, success conditions, failure patterns, policy, and metadata.
 
 ```yaml
 id: cms-save-draft
@@ -122,56 +86,82 @@ intent:
 risk: draft
 steps:
   - description: Click Save Draft, not Publish.
+    guidance: Stop if Publish is the only available primary action.
 success_conditions:
   - The CMS shows a saved draft confirmation.
+  - The article remains unpublished.
 failure_patterns:
   - pattern: Publish button is the only visible primary action
     meaning: Saving a draft may be unavailable in this workflow state.
+    recovery: Stop and ask an editor whether to continue.
 policy:
+  requires_confirmation: false
   allowed_modes:
     - assisted
 metadata:
-  created_at: "2026-05-05T00:00:00Z"
-  updated_at: "2026-05-05T00:00:00Z"
+  created_at: "2026-05-05T00:00:00.000Z"
+  updated_at: "2026-05-05T00:00:00.000Z"
   confidence: medium
 ```
 
-## Security Policy
+Complete examples live in [`examples/recipes/`](examples/recipes/). Recipe writing guidance lives in [docs/recipe-quality.md](docs/recipe-quality.md).
 
-Operation Memory is local-first. The CLI does not send recipe contents over the network. The MVP writes recipes under `.operation-memory/recipes` in the current project when initialized, otherwise under `~/.operation-memory/recipes`.
+## Store Location
 
-Treat operational recipes as sensitive when they include infrastructure names, customer impact, incident details, or internal commands. Do not store cookies, tokens, passwords, private keys, personal information, customer data, regulated data, full DOM snapshots, or raw screenshot data in recipes. If sensitive material is committed by mistake, remove it from the recipe, rotate exposed credentials, and follow normal repository secret-removal procedures.
+`opmem init` creates a project-local store:
 
-Use the `risk` and `policy.requires_confirmation` fields to mark procedures that need human confirmation before execution. The initial policy is:
+```text
+.operation-memory/recipes/
+```
 
-- `read`: confirmation is not required.
-- `draft`: confirmation is optional.
-- `prefill`: confirmation is required before submission.
-- `write`, `destructive`, `real_world`: confirmation is required.
+When that directory exists in the current project, Operation Memory reads and writes there. If it does not exist, commands use the personal fallback:
 
-`policy.allowed_modes` is a typed list. Allowed values are `manual`, `assisted`, `prefill`, `confirm`, and `auto_readonly`.
+```text
+~/.operation-memory/recipes/
+```
 
-See `SECURITY.md` for review guidance, `SPEC.md` for the recipe lifecycle, risk model, execution modes, and non-goals, and `docs/recipe-quality.md` for recipe writing guidance.
+Use a project-local store for team or repository recipes. Use the home-directory fallback for personal procedures that should be available across projects.
 
-Future work may add `opmem audit` to flag secret-looking values, raw URLs, customer identifiers, and unsafe policy combinations. It is not implemented in this MVP. See `docs/audit.md` for the design.
+## Safety Rules
 
-## MVP Notes
+Treat recipes as sensitive when they mention infrastructure, incidents, customers, releases, internal procedures, or commands.
 
-The CLI delegates storage, recipe validation, policy, and search behavior to the TypeScript modules under `src/`. The command surface is intentionally small so the backing store and search implementation can evolve without changing common workflows.
+Do not store cookies, tokens, passwords, private keys, session IDs, personal data, customer data, regulated data, raw logs, raw DOM snapshots, screenshots, HAR files, browser storage, signed URLs, or production-only hostnames when placeholders would work.
 
-## Development Harness
+For high-impact recipes, use `risk`, `policy.requires_confirmation`, and step-level confirmation guidance:
 
-This repository includes a small Codex harness adapted from [`s-hiraoku/codex-harnesses`](https://github.com/s-hiraoku/codex-harnesses). The harness is documented in the [GitHub Pages guide](docs/harness.md):
+| Risk | Use For | Confirmation |
+| --- | --- | --- |
+| `read` | Inspection only. | Not required. |
+| `draft` | Drafting, saving, or recording without external effect. | Optional. |
+| `prefill` | Preparing a form, message, patch, or command for review. | Required before submission. |
+| `write` | Changing local or remote state. | Required. |
+| `destructive` | Deleting, overwriting, rolling back, disabling, or risking data loss. | Required. |
+| `real_world` | Affecting people, money, legal obligations, external communications, or physical-world outcomes. | Required. |
 
-- `AGENTS.md` keeps durable project guidance close to the code.
-- `scripts/verify.sh` runs typecheck, tests, and build.
-- `scripts/checkpoint.sh` appends resumable task state to `ledger/current.md`.
-- `ledger/` stores task state, durable decisions, risks, and verification notes.
-- `policies/default.yaml` records the expected safety and verification posture.
+Validation rejects `write`, `destructive`, and `real_world` recipes that explicitly disable confirmation.
 
-Use:
+## Verify This Repository
+
+Run the full project verification loop:
 
 ```sh
 npm run verify
-npm run checkpoint
 ```
+
+For a quick end-to-end CLI smoke check:
+
+```sh
+npm run build
+npm run smoke
+```
+
+The smoke check creates a temporary recipe store, adds examples, lists recipes, searches, shows one recipe, validates the store, and deletes the temporary store.
+
+## More Documentation
+
+- [User Guide](docs/index.md): first-use tutorial, command reference, troubleshooting, and recipe authoring flow.
+- [Recipe Quality Guide](docs/recipe-quality.md): examples of good and risky recipes.
+- [Security Policy](SECURITY.md): review guidance for sensitive operational content.
+- [Specification](SPEC.md): lifecycle, risk model, execution modes, and non-goals.
+- [Codex Harness](docs/harness.md): repository-specific development harness and verification workflow.
